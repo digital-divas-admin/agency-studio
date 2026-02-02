@@ -1,0 +1,271 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===================
+   Theme Variables
+   These are overridden by agency branding
+   =================== */
+
+:root {
+  /* Primary brand color */
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-primary-light: #818cf8;
+
+  /* Secondary color */
+  --color-secondary: #10b981;
+  --color-secondary-hover: #059669;
+
+  /* Backgrounds */
+  --color-background: #0a0a0a;
+  --color-surface: #141414;
+  --color-surface-elevated: #1f1f1f;
+
+  /* Text */
+  --color-text: #fafafa;
+  --color-text-muted: #a1a1aa;
+
+  /* Borders */
+  --color-border: #27272a;
+
+  /* Font */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ===================
+   Base Styles
+   =================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+/* ===================
+   Scrollbar Styling
+   =================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ===================
+   Focus Styles
+   =================== */
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ===================
+   Utility Classes
+   =================== */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* ===================
+   Card Components
+   =================== */
+
+@layer components {
+  /* Premium card with hover lift and glow */
+  .card-premium {
+    @apply transition-all duration-300 ease-in-out bg-surface-elevated border border-border rounded-xl shadow-card-elevated;
+  }
+
+  .card-premium:hover {
+    @apply -translate-y-1 shadow-card-hover border-primary shadow-glow;
+  }
+
+  /* Interactive card with scale effect */
+  .card-interactive {
+    @apply transition-all duration-200 ease-out cursor-pointer;
+  }
+
+  .card-interactive:hover {
+    @apply scale-[1.02] shadow-glow;
+  }
+
+  .card-interactive:active {
+    @apply scale-[0.98];
+  }
+
+  /* Gradient button primary */
+  .btn-gradient {
+    @apply bg-gradient-primary text-white font-semibold px-6 py-3 rounded-lg shadow-lg;
+    @apply transition-all duration-200 hover:shadow-glow-lg hover:scale-105;
+  }
+
+  .btn-gradient:active {
+    @apply scale-95;
+  }
+
+  .btn-gradient:disabled {
+    @apply opacity-50 cursor-not-allowed scale-100;
+  }
+
+  /* Icon container with glow effect */
+  .icon-glow {
+    @apply transition-all duration-300;
+  }
+
+  .icon-glow:hover {
+    @apply shadow-glow text-primary;
+  }
+
+  /* Staggered animation for lists */
+  .stagger-item {
+    animation: slideUp 0.3s ease-out backwards;
+  }
+
+  .stagger-item:nth-child(1) { animation-delay: 0.05s; }
+  .stagger-item:nth-child(2) { animation-delay: 0.1s; }
+  .stagger-item:nth-child(3) { animation-delay: 0.15s; }
+  .stagger-item:nth-child(4) { animation-delay: 0.2s; }
+}
+
+/* ===================
+   Animation Classes
+   =================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* ===================
+   Accessibility
+   =================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-float,
+  .animate-spin-slow {
+    animation: none !important;
+  }
+}
+
+/* ===================
+   Mobile Optimizations
+   =================== */
+
+@media (max-width: 768px) {
+  /* Larger touch targets */
+  button {
+    min-height: 44px;
+  }
+}
