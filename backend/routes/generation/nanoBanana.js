@@ -10,6 +10,7 @@ const { logger } = require('../../services/logger');
 const { supabaseAdmin } = require('../../services/supabase');
 const { requireAuth } = require('../../middleware/auth');
 const { requireCredits, deductCredits } = require('../../middleware/credits');
+const { validatePrompt } = require('../../middleware/validation');
 const { config } = require('../../config');
 
 const router = express.Router();
@@ -50,7 +51,7 @@ async function fetchWithRetry(url, options, maxRetries = MAX_RETRIES) {
  * POST /api/generate/nano-banana
  * Generate images using Nano Banana Pro (Gemini 3)
  */
-router.post('/', requireAuth, requireCredits('nanoBanana'), async (req, res) => {
+router.post('/', requireAuth, validatePrompt, requireCredits('nanoBanana'), async (req, res) => {
   const { agency, agencyUser } = req;
 
   try {

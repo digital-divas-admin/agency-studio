@@ -28,10 +28,28 @@ router.get('/config', async (req, res) => {
       ? JSON.parse(agency.settings)
       : agency.settings || {};
 
+    // Fetch plan information including white-label tier
+    let planInfo = null;
+    if (agency.plan_id) {
+      const { data: plan } = await supabaseAdmin
+        .from('agency_plans')
+        .select('id, name, white_label_tier, white_label_features')
+        .eq('id', agency.plan_id)
+        .single();
+
+      planInfo = plan || null;
+    }
+
     res.json({
       id: agency.id,
       name: agency.name,
       slug: agency.slug,
+      status: agency.status,
+      subscription_status: agency.subscription_status,
+      trial_ends_at: agency.trial_ends_at,
+      onboarding_completed: agency.onboarding_completed,
+      plan: planInfo,
+      settings: settings,
       branding: settings.branding || {
         logo_url: null,
         favicon_url: null,
@@ -47,6 +65,7 @@ router.get('/config', async (req, res) => {
         nsfw_enabled: true,
         models_allowed: ['seedream', 'nanoBanana', 'qwen', 'kling', 'wan', 'veo'],
       },
+      trial_info: req.trialInfo || null,
     });
   } catch (error) {
     logger.error('Error fetching agency config:', error);
@@ -327,6 +346,40 @@ router.get('/dashboard', requireAuth, async (req, res) => {
   } catch (error) {
     logger.error('Error fetching dashboard:', error);
     res.status(500).json({ error: 'Failed to fetch dashboard data' });
+  }
+});
+
+/**
+ * PUT /api/agency/onboarding/complete
+ * Mark agency onboarding as completed
+ */
+router.put('/onboarding/complete', requireAuth, async (req, res) => {
+  const { agency } = req;
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('agencies')
+      .update({ onboarding_completed: true })
+      .eq('id', agency.id)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    logger.info(`Onboarding completed for agency ${agency.id}`);
+
+    res.json({
+      message: 'Onboarding completed successfully',
+      agency: {
+        id: data.id,
+        onboarding_completed: data.onboarding_completed
+      }
+    });
+  } catch (error) {
+    logger.error('Error completing onboarding:', error);
+    res.status(500).json({ error: 'Failed to complete onboarding' });
   }
 });
 

@@ -419,7 +419,7 @@ export function DashboardPage() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-text">Your Models</h2>
               <Link
-                to="/models"
+                to="/admin/models"
                 className="text-xs text-primary hover:text-primary-hover flex items-center gap-1"
               >
                 <Plus className="h-3 w-3" /> Add Model
@@ -446,7 +446,7 @@ export function DashboardPage() {
                 </p>
 
                 {/* CTA Button */}
-                <Link to="/models">
+                <Link to="/admin/models">
                   <button className="btn-gradient inline-flex items-center gap-2">
                     <Plus className="h-5 w-5" />
                     Add Your First Model

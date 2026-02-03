@@ -6,6 +6,10 @@
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute, PublicRoute } from './components/layout/ProtectedRoute';
 import { LoginPage } from './pages/Login';
+import { SignupPage } from './pages/Signup';
+import { AcceptInvitePage } from './pages/AcceptInvite';
+import { OnboardingPage } from './pages/Onboarding';
+import { TeamMemberOnboardingPage } from './pages/TeamMemberOnboarding';
 import { DashboardPage } from './pages/Dashboard';
 import { ImageGenPage } from './pages/ImageGen';
 import { EditToolsPage } from './pages/EditTools';
@@ -34,6 +38,33 @@ function App() {
           <PublicRoute>
             <LoginPage />
           </PublicRoute>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <PublicRoute>
+            <SignupPage />
+          </PublicRoute>
+        }
+      />
+      <Route path="/invite/:token" element={<AcceptInvitePage />} />
+
+      {/* Onboarding (Protected) */}
+      <Route
+        path="/:agencySlug/onboarding"
+        element={
+          <ProtectedRoute>
+            <OnboardingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute>
+            <TeamMemberOnboardingPage />
+          </ProtectedRoute>
         }
       />
 

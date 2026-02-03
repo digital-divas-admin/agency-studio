@@ -9,6 +9,7 @@ const { logger } = require('../../services/logger');
 const { supabaseAdmin } = require('../../services/supabase');
 const { requireAuth } = require('../../middleware/auth');
 const { requireCredits, deductCredits } = require('../../middleware/credits');
+const { validatePrompt } = require('../../middleware/validation');
 const { config } = require('../../config');
 const { runModel } = require('../../services/replicateClient');
 const { compressImage } = require('../../services/imageCompression');
@@ -21,7 +22,7 @@ const VEO_MODEL = "google/veo-3.1-fast";
  * POST /api/generate/veo
  * Generate video using Veo 3.1 Fast
  */
-router.post('/', requireAuth, requireCredits('veo'), async (req, res) => {
+router.post('/', requireAuth, validatePrompt, requireCredits('veo'), async (req, res) => {
   const { agency, agencyUser } = req;
 
   try {

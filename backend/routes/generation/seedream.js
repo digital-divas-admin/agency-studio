@@ -9,6 +9,7 @@ const { logger } = require('../../services/logger');
 const { supabaseAdmin } = require('../../services/supabase');
 const { requireAuth } = require('../../middleware/auth');
 const { requireCredits, deductCredits } = require('../../middleware/credits');
+const { validatePrompt } = require('../../middleware/validation');
 const { config } = require('../../config');
 const { PerAgencyQueue } = require('../../services/requestQueue');
 const { fetchWithRetry } = require('../../services/retryWithBackoff');
@@ -61,7 +62,7 @@ async function pollForResult(taskId, apiKey, maxAttempts = 60) {
  * POST /api/generate/seedream
  * Generate images using Seedream 4.5
  */
-router.post('/', requireAuth, requireCredits('seedream'), async (req, res) => {
+router.post('/', requireAuth, validatePrompt, requireCredits('seedream'), async (req, res) => {
   const { agency, agencyUser } = req;
 
   try {
@@ -260,16 +261,21 @@ router.post('/', requireAuth, requireCredits('seedream'), async (req, res) => {
     }).select('id').single();
 
     // Save each image to gallery_items
-    const galleryItems = [];
-    for (let i = 0; i < images.length; i++) {
-      // Generate a small thumbnail for dashboard/gallery display
-      let thumbnailUrl = null;
+    // Generate thumbnails in parallel for better performance
+    const thumbnailPromises = images.map(async (imageUrl) => {
       try {
-        thumbnailUrl = await compressImage(images[i], { maxDimension: 300, quality: 60 });
+        return await compressImage(imageUrl, { maxDimension: 300, quality: 60 });
       } catch (err) {
         logger.warn('Thumbnail generation failed, skipping:', err.message);
+        return null;
       }
+    });
 
+    const thumbnailUrls = await Promise.all(thumbnailPromises);
+
+    // Insert gallery items (could also be parallelized, but keep sequential for transaction safety)
+    const galleryItems = [];
+    for (let i = 0; i < images.length; i++) {
       const { data: item } = await supabaseAdmin.from('gallery_items').insert({
         agency_id: agency.id,
         user_id: agencyUser.id,
@@ -277,7 +283,7 @@ router.post('/', requireAuth, requireCredits('seedream'), async (req, res) => {
         model_id: model_id || null,
         title: prompt.substring(0, 100),
         url: images[i],
-        thumbnail_url: thumbnailUrl,
+        thumbnail_url: thumbnailUrls[i],
         type: 'image',
         source: 'generated',
         tags: ['seedream']

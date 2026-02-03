@@ -9,6 +9,7 @@ const { logger } = require('../../services/logger');
 const { supabaseAdmin } = require('../../services/supabase');
 const { requireAuth } = require('../../middleware/auth');
 const { requireCredits, deductCredits } = require('../../middleware/credits');
+const { validatePrompt } = require('../../middleware/validation');
 const { config } = require('../../config');
 
 const router = express.Router();
@@ -19,7 +20,7 @@ const KLING_MODEL = "kwaivgi/kling-v2.5-turbo-pro";
  * POST /api/generate/kling
  * Generate video using Kling 2.5 Turbo Pro
  */
-router.post('/', requireAuth, requireCredits('kling'), async (req, res) => {
+router.post('/', requireAuth, validatePrompt, requireCredits('kling'), async (req, res) => {
   const { agency, agencyUser } = req;
 
   try {

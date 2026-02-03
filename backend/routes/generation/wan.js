@@ -9,6 +9,7 @@ const { logger } = require('../../services/logger');
 const { supabaseAdmin } = require('../../services/supabase');
 const { requireAuth } = require('../../middleware/auth');
 const { requireCredits, deductCredits } = require('../../middleware/credits');
+const { validatePrompt } = require('../../middleware/validation');
 const { config } = require('../../config');
 const { runModel } = require('../../services/replicateClient');
 const { compressImage } = require('../../services/imageCompression');
@@ -21,7 +22,7 @@ const WAN_MODEL = "wan-video/wan-2.2-i2v-a14b";
  * POST /api/generate/wan
  * Generate video using WAN 2.2
  */
-router.post('/', requireAuth, requireCredits('wan'), async (req, res) => {
+router.post('/', requireAuth, validatePrompt, requireCredits('wan'), async (req, res) => {
   const { agency, agencyUser } = req;
 
   try {

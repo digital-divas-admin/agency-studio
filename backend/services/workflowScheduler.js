@@ -73,9 +73,12 @@ async function pollAndFire() {
 
   logger.info(`Scheduler found ${triggers.length} due trigger(s)`);
 
+  // Batch load all data needed for processing triggers
+  const batchData = await batchLoadTriggerData(triggers);
+
   for (const trigger of triggers) {
     try {
-      await fireTrigger(trigger);
+      await fireTrigger(trigger, batchData);
     } catch (err) {
       logger.error('Failed to fire trigger:', { triggerId: trigger.id, error: err.message });
     }
@@ -83,9 +86,61 @@ async function pollAndFire() {
 }
 
 /**
- * Fire a single trigger: create a workflow run and advance next_trigger_at.
+ * Batch load all data needed to process triggers (eliminates N+1 queries).
+ * Loads: active run counts, agency credits, and workflow nodes in 3 queries.
  */
-async function fireTrigger(trigger) {
+async function batchLoadTriggerData(triggers) {
+  const workflowIds = triggers.map((t) => t.workflows.id);
+  const agencyIds = [...new Set(triggers.map((t) => t.agency_id))];
+
+  // Query 1: Get active run counts for all workflows
+  const { data: activeRunsData } = await supabaseAdmin
+    .from('workflow_runs')
+    .select('workflow_id')
+    .in('workflow_id', workflowIds)
+    .in('status', ['running', 'waiting_for_review']);
+
+  const activeRunsMap = {};
+  for (const run of activeRunsData || []) {
+    activeRunsMap[run.workflow_id] = (activeRunsMap[run.workflow_id] || 0) + 1;
+  }
+
+  // Query 2: Get agency credits for all agencies
+  const { data: agenciesData } = await supabaseAdmin
+    .from('agencies')
+    .select('id, credit_pool')
+    .in('id', agencyIds);
+
+  const agenciesMap = Object.fromEntries(
+    (agenciesData || []).map((a) => [a.id, a])
+  );
+
+  // Query 3: Get workflow nodes for all workflows
+  const { data: nodesData } = await supabaseAdmin
+    .from('workflow_nodes')
+    .select('id, workflow_id')
+    .in('workflow_id', workflowIds);
+
+  const nodesMap = {};
+  for (const node of nodesData || []) {
+    if (!nodesMap[node.workflow_id]) {
+      nodesMap[node.workflow_id] = [];
+    }
+    nodesMap[node.workflow_id].push(node);
+  }
+
+  return {
+    activeRunsMap,
+    agenciesMap,
+    nodesMap,
+  };
+}
+
+/**
+ * Fire a single trigger: create a workflow run and advance next_trigger_at.
+ * Uses pre-loaded batchData to avoid N+1 queries.
+ */
+async function fireTrigger(trigger, batchData) {
   const workflow = trigger.workflows;
 
   // Skip if workflow is not active or has no model
@@ -105,12 +160,8 @@ async function fireTrigger(trigger) {
     return;
   }
 
-  // Check max_concurrent_runs — don't start if we're already at the limit
-  const { count: activeRuns } = await supabaseAdmin
-    .from('workflow_runs')
-    .select('id', { count: 'exact', head: true })
-    .eq('workflow_id', workflow.id)
-    .in('status', ['running', 'waiting_for_review']);
+  // Check max_concurrent_runs using pre-loaded data
+  const activeRuns = batchData.activeRunsMap[workflow.id] || 0;
 
   if (activeRuns >= (trigger.max_concurrent_runs || 1)) {
     logger.debug('Skipping trigger: max concurrent runs reached', {
@@ -123,12 +174,8 @@ async function fireTrigger(trigger) {
     return;
   }
 
-  // Pre-flight credit check
-  const { data: agency } = await supabaseAdmin
-    .from('agencies')
-    .select('credit_pool')
-    .eq('id', trigger.agency_id)
-    .single();
+  // Pre-flight credit check using pre-loaded data
+  const agency = batchData.agenciesMap[trigger.agency_id];
 
   if (!agency || agency.credit_pool <= 0) {
     logger.warn('Skipping trigger: insufficient credits', {
@@ -139,13 +186,10 @@ async function fireTrigger(trigger) {
     return;
   }
 
-  // Load nodes to verify workflow has content
-  const { data: nodes } = await supabaseAdmin
-    .from('workflow_nodes')
-    .select('id')
-    .eq('workflow_id', workflow.id);
+  // Check nodes using pre-loaded data
+  const nodes = batchData.nodesMap[workflow.id] || [];
 
-  if (!nodes || nodes.length === 0) {
+  if (nodes.length === 0) {
     logger.debug('Skipping trigger: workflow has no nodes', { triggerId: trigger.id });
     await advanceTrigger(trigger);
     return;

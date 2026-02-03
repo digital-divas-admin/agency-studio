@@ -15,9 +15,11 @@ const { config, validateEnv } = require('./config');
 const { logger } = require('./services/logger');
 const { requestId } = require('./middleware/requestId');
 const { resolveAgency } = require('./middleware/agency');
+const { checkTrialStatus, addTrialInfo } = require('./middleware/trial');
 
 // Route imports
 const healthRoutes = require('./routes/health');
+const authRoutes = require('./routes/auth');
 const agencyRoutes = require('./routes/agency');
 const teamRoutes = require('./routes/team');
 const generationRoutes = require('./routes/generation');
@@ -29,6 +31,8 @@ const workflowsRoutes = require('./routes/workflows');
 const contentRequestsRoutes = require('./routes/contentRequests');
 const portalRoutes = require('./routes/portal');
 const modelInvitationsRoutes = require('./routes/modelInvitations');
+const brandingRoutes = require('./routes/admin/branding');
+const assetsRoutes = require('./routes/admin/assets');
 const workflowScheduler = require('./services/workflowScheduler');
 
 // Validate environment on startup
@@ -45,10 +49,27 @@ const app = express();
 // Security Middleware
 // ===================
 
-// Helmet for security headers
+// Helmet for security headers with CSP enabled
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false, // Disable CSP for now (frontend handles it)
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // unsafe-inline needed for React dev mode
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: [
+        "'self'",
+        process.env.VITE_SUPABASE_URL,
+        "https://*.supabase.co",
+      ],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'", "https:", "blob:"],
+      frameSrc: ["'none'"],
+      upgradeInsecureRequests: config.isDev ? null : [],
+    },
+  },
 }));
 
 // CORS configuration
@@ -147,12 +168,22 @@ app.use('/api', generalLimiter);
 // Health check (no agency resolution needed)
 app.use('/health', healthRoutes);
 
-// Agency resolution for all /api routes
+// Auth routes (public, no agency resolution needed)
+app.use('/api/auth', authRoutes);
+
+// Agency resolution for all /api routes (except /api/auth)
 app.use('/api', resolveAgency);
+
+// Trial status checking (after agency resolution)
+// Adds trial info and blocks access if trial expired
+app.use('/api', addTrialInfo);
+app.use('/api', checkTrialStatus);
 
 // API routes
 app.use('/api/agency', agencyRoutes);
 app.use('/api/team', teamRoutes);
+app.use('/api/admin/branding', brandingRoutes);
+app.use('/api/admin/assets', assetsRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/models', modelsRoutes);
 app.use('/api/workflows', workflowsRoutes);

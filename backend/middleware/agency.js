@@ -1,11 +1,56 @@
 /**
  * Agency Resolution Middleware
  * Resolves the current agency from hostname and attaches to request
+ * Includes in-memory caching to reduce database queries
  */
 
 const { supabaseAdmin } = require('../services/supabase');
 const { logger } = require('../services/logger');
 const { config } = require('../config');
+
+// In-memory cache for agency lookups
+// Key: slug or custom_domain, Value: { agency, timestamp }
+const agencyCache = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Get agency from cache if available and not expired
+ */
+function getCachedAgency(key) {
+  const cached = agencyCache.get(key);
+  if (!cached) return null;
+
+  const isExpired = Date.now() - cached.timestamp > CACHE_TTL_MS;
+  if (isExpired) {
+    agencyCache.delete(key);
+    return null;
+  }
+
+  return cached.agency;
+}
+
+/**
+ * Store agency in cache
+ */
+function setCachedAgency(key, agency) {
+  agencyCache.set(key, {
+    agency,
+    timestamp: Date.now(),
+  });
+
+  // Prevent cache from growing unbounded (simple LRU-like behavior)
+  if (agencyCache.size > 1000) {
+    const firstKey = agencyCache.keys().next().value;
+    agencyCache.delete(firstKey);
+  }
+}
+
+/**
+ * Clear agency from cache (useful for updates)
+ */
+function clearAgencyCache(key) {
+  agencyCache.delete(key);
+}
 
 /**
  * Extract agency slug from hostname
@@ -60,17 +105,26 @@ async function resolveAgency(req, res, next) {
       } else if (identifier.type === 'slug') {
         agencySlug = identifier.value;
       } else if (identifier.type === 'custom_domain') {
-        // Lookup by custom domain
-        const { data: agency, error } = await supabaseAdmin
-          .from('agencies')
-          .select('*')
-          .eq('custom_domain', identifier.value)
-          .eq('status', 'active')
-          .single();
+        // Check cache first
+        const cacheKey = `domain:${identifier.value}`;
+        let agency = getCachedAgency(cacheKey);
 
-        if (error || !agency) {
-          logger.warn(`Agency not found for custom domain: ${identifier.value}`);
-          return res.status(404).json({ error: 'Agency not found' });
+        if (!agency) {
+          // Lookup by custom domain
+          const { data, error } = await supabaseAdmin
+            .from('agencies')
+            .select('*')
+            .eq('custom_domain', identifier.value)
+            .in('status', ['active', 'trial'])
+            .single();
+
+          if (error || !data) {
+            logger.warn(`Agency not found for custom domain: ${identifier.value}`);
+            return res.status(404).json({ error: 'Agency not found' });
+          }
+
+          agency = data;
+          setCachedAgency(cacheKey, agency);
         }
 
         req.agency = agency;
@@ -78,17 +132,26 @@ async function resolveAgency(req, res, next) {
       }
     }
 
-    // Lookup by slug
-    const { data: agency, error } = await supabaseAdmin
-      .from('agencies')
-      .select('*')
-      .eq('slug', agencySlug)
-      .eq('status', 'active')
-      .single();
+    // Check cache first
+    const cacheKey = `slug:${agencySlug}`;
+    let agency = getCachedAgency(cacheKey);
 
-    if (error || !agency) {
-      logger.warn(`Agency not found for slug: ${agencySlug}`);
-      return res.status(404).json({ error: 'Agency not found' });
+    if (!agency) {
+      // Lookup by slug from database
+      const { data, error } = await supabaseAdmin
+        .from('agencies')
+        .select('*')
+        .eq('slug', agencySlug)
+        .in('status', ['active', 'trial'])
+        .single();
+
+      if (error || !data) {
+        logger.warn(`Agency not found for slug: ${agencySlug}`);
+        return res.status(404).json({ error: 'Agency not found' });
+      }
+
+      agency = data;
+      setCachedAgency(cacheKey, agency);
     }
 
     req.agency = agency;
@@ -131,4 +194,9 @@ async function resolveAgencyOptional(req, res, next) {
   }
 }
 
-module.exports = { resolveAgency, resolveAgencyOptional, extractAgencyIdentifier };
+module.exports = {
+  resolveAgency,
+  resolveAgencyOptional,
+  extractAgencyIdentifier,
+  clearAgencyCache, // Export for manual cache invalidation when agencies are updated
+};

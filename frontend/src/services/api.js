@@ -131,6 +131,32 @@ export const api = {
       method: 'DELETE',
     }),
 
+  // Team - Pending Invites
+  getPendingInvites: () => request('/api/team/pending-invites'),
+  resendInvite: (inviteId) =>
+    request(`/api/team/invite/${inviteId}/resend`, { method: 'POST' }),
+  revokeInvite: (inviteId) =>
+    request(`/api/team/invite/${inviteId}`, { method: 'DELETE' }),
+
+  // Team - Permissions
+  updateUserPermissions: (userId, permissions) =>
+    request(`/api/team/${userId}/permissions`, {
+      method: 'PUT',
+      body: JSON.stringify({ permissions }),
+    }),
+
+  // Team - Model Assignment
+  assignModels: (userId, modelIds) =>
+    request(`/api/team/${userId}/models`, {
+      method: 'PUT',
+      body: JSON.stringify({ modelIds }),
+    }),
+  getUserModels: (userId) => request(`/api/team/${userId}/models`),
+
+  // Team - Activity
+  getTeamActivity: (limit = 50, offset = 0) =>
+    request(`/api/team/activity?limit=${limit}&offset=${offset}`),
+
   // Image Generation
   generateSeedream: (data) =>
     request('/api/generate/seedream', { method: 'POST', body: JSON.stringify(data) }),
@@ -289,6 +315,36 @@ export const api = {
 
   // Health
   healthCheck: () => request('/health'),
+
+  // Branding & White-Label
+  getBranding: () => request('/api/admin/branding'),
+  updateBranding: (data) =>
+    request('/api/admin/branding', { method: 'PUT', body: JSON.stringify(data) }),
+  resetBranding: () =>
+    request('/api/admin/branding/reset', { method: 'POST' }),
+
+  // Asset Management
+  uploadAsset: async (formData) => {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE}/api/admin/assets/upload`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: formData // Don't set Content-Type, browser will set it with boundary
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new ApiError(error.error || 'Upload failed', response.status, error);
+    }
+
+    return response.json();
+  },
+  deleteAsset: (type) =>
+    request(`/api/admin/assets/${type}`, { method: 'DELETE' }),
+  getAsset: (type) =>
+    request(`/api/admin/assets/${type}`),
 };
 
 export { ApiError };

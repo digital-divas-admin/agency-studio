@@ -25,6 +25,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useAgency } from '../../context/AgencyContext';
 import { useModel } from '../../context/ModelContext';
+import { useWhiteLabelTier } from '../../hooks/useWhiteLabelTier';
 
 const mainNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -206,6 +207,33 @@ export function Sidebar() {
           </button>
         </div>
       </div>
+
+      {/* Powered by Footer (hidden if white-label setting enabled) */}
+      <PoweredByFooter />
     </aside>
+  );
+}
+
+function PoweredByFooter() {
+  const { shouldHidePoweredBy } = useWhiteLabelTier();
+
+  if (shouldHidePoweredBy()) {
+    return null;
+  }
+
+  return (
+    <div className="px-4 pb-4 text-center">
+      <p className="text-xs text-text-muted">
+        Powered by{' '}
+        <a
+          href="https://agencystudio.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline"
+        >
+          Agency Studio
+        </a>
+      </p>
+    </div>
   );
 }

@@ -17,16 +17,28 @@ const { logger } = require('../services/logger');
  */
 router.get('/', requireAuth, async (req, res) => {
   const { agency, agencyUser } = req;
-  const { limit = 50, offset = 0, type, favorites, model_id, source } = req.query;
+  const {
+    limit: rawLimit = 50,
+    offset: rawOffset = 0,
+    type,
+    favorites,
+    model_id,
+    source,
+  } = req.query;
 
   try {
+    // Enforce maximum limit to prevent excessive data fetching
+    const MAX_LIMIT = 100;
+    const limit = Math.min(Math.max(parseInt(rawLimit) || 50, 1), MAX_LIMIT);
+    const offset = Math.max(parseInt(rawOffset) || 0, 0);
+
     let query = supabaseAdmin
       .from('gallery_items')
       .select('*')
       .eq('agency_id', agency.id)
       .eq('user_id', agencyUser.id)
       .order('created_at', { ascending: false })
-      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
+      .range(offset, offset + limit - 1);
 
     if (type) {
       query = query.eq('type', type);
@@ -214,11 +226,13 @@ router.put('/:id/favorite', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
 
-    // Toggle
+    // Toggle (defensive: add agency_id and user_id filters for extra safety)
     const { data: updated, error } = await supabaseAdmin
       .from('gallery_items')
       .update({ is_favorited: !item.is_favorited })
       .eq('id', id)
+      .eq('agency_id', agency.id)
+      .eq('user_id', agencyUser.id)
       .select()
       .single();
 

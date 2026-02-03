@@ -35,8 +35,21 @@ export function LoginPage() {
     }
   };
 
+  // Background styles for custom login background
+  const backgroundStyles = branding.login_background_url
+    ? {
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, ${branding.login_background_overlay_opacity || 0.7}), rgba(0, 0, 0, ${branding.login_background_overlay_opacity || 0.7})), url(${branding.login_background_url})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }
+    : {};
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div
+      className="min-h-screen flex items-center justify-center bg-background p-4"
+      style={backgroundStyles}
+    >
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -56,7 +69,11 @@ export function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <div className="bg-surface rounded-xl border border-border p-6">
+        <div
+          className={`bg-surface rounded-xl border border-border p-6 ${
+            branding.login_background_url ? 'backdrop-blur-sm bg-surface/95 shadow-2xl' : ''
+          }`}
+        >
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
@@ -109,7 +126,9 @@ export function LoginPage() {
         {/* Footer */}
         <p className="text-center text-text-muted text-sm mt-6">
           Don't have an account?{' '}
-          <span className="text-text">Contact your administrator for an invite.</span>
+          <Link to="/signup" className="text-primary hover:text-primary-hover">
+            Sign up for free
+          </Link>
         </p>
       </div>
     </div>

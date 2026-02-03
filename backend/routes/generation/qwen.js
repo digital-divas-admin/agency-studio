@@ -11,6 +11,7 @@ const { logger } = require('../../services/logger');
 const { supabaseAdmin } = require('../../services/supabase');
 const { requireAuth } = require('../../middleware/auth');
 const { requireCredits, deductCredits } = require('../../middleware/credits');
+const { validatePrompt } = require('../../middleware/validation');
 const { config } = require('../../config');
 const { compressImage } = require('../../services/imageCompression');
 const { routeGenerationRequest, getJobStatus } = require('../../services/gpuRouter');
@@ -201,7 +202,7 @@ async function pollJob(jobId) {
  * POST /api/generate/qwen
  * Generate image using Qwen model via ComfyUI
  */
-router.post('/', requireAuth, requireCredits('qwen'), async (req, res) => {
+router.post('/', requireAuth, validatePrompt, requireCredits('qwen'), async (req, res) => {
   const { agency, agencyUser } = req;
 
   try {
