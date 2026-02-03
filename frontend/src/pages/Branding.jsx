@@ -177,7 +177,7 @@ export function BrandingPage() {
               type="logo"
               label="Logo"
               currentUrl={brandingData.logo_url}
-              onUpload={(url) => setBrandingData({ ...brandingData, logo_url: url })}
+              onUpload={(url) => setBrandingData(prev => ({ ...prev, logo_url: url }))}
               locked={isLocked('logo_upload')}
               maxSizeMB={2}
             />
@@ -186,7 +186,7 @@ export function BrandingPage() {
               type="favicon"
               label="Favicon"
               currentUrl={brandingData.favicon_url}
-              onUpload={(url) => setBrandingData({ ...brandingData, favicon_url: url })}
+              onUpload={(url) => setBrandingData(prev => ({ ...prev, favicon_url: url }))}
               locked={isLocked('favicon')}
               maxSizeMB={0.5}
               accept=".png,.ico"
@@ -199,7 +199,7 @@ export function BrandingPage() {
               <input
                 type="text"
                 value={brandingData.app_name || ''}
-                onChange={(e) => setBrandingData({ ...brandingData, app_name: e.target.value })}
+                onChange={(e) => setBrandingData(prev => ({ ...prev, app_name: e.target.value }))}
                 placeholder="My Agency"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg
                          text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
@@ -209,7 +209,7 @@ export function BrandingPage() {
             <ColorPicker
               label="Primary Color"
               value={brandingData.primary_color}
-              onChange={(color) => setBrandingData({ ...brandingData, primary_color: color })}
+              onChange={(color) => setBrandingData(prev => ({ ...prev, primary_color: color }))}
               locked={isLocked('primary_color')}
               helpText="Main brand color for buttons, links, and accents"
             />
@@ -223,7 +223,7 @@ export function BrandingPage() {
               <ColorPicker
                 label="Secondary Color"
                 value={brandingData.secondary_color}
-                onChange={(color) => setBrandingData({ ...brandingData, secondary_color: color })}
+                onChange={(color) => setBrandingData(prev => ({ ...prev, secondary_color: color }))}
                 helpText="Accent color for success states and secondary actions"
               />
 
@@ -231,7 +231,7 @@ export function BrandingPage() {
                 type="login_background"
                 label="Login Page Background"
                 currentUrl={brandingData.login_background_url}
-                onUpload={(url) => setBrandingData({ ...brandingData, login_background_url: url })}
+                onUpload={(url) => setBrandingData(prev => ({ ...prev, login_background_url: url }))}
                 maxSizeMB={5}
               />
 
@@ -265,13 +265,13 @@ export function BrandingPage() {
             <div className="space-y-8">
               <ColorPaletteEditor
                 value={brandingData.color_palette}
-                onChange={(palette) => setBrandingData({ ...brandingData, color_palette: palette })}
+                onChange={(palette) => setBrandingData(prev => ({ ...prev, color_palette: palette }))}
                 locked={isLocked('full_color_palette')}
               />
 
               <CSSEditor
                 value={brandingData.custom_css}
-                onChange={(css) => setBrandingData({ ...brandingData, custom_css: css })}
+                onChange={(css) => setBrandingData(prev => ({ ...prev, custom_css: css }))}
                 locked={isLocked('custom_css')}
               />
 

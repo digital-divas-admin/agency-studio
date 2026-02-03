@@ -49,6 +49,11 @@ export function CSSEditor({ value = '', onChange, locked = false }) {
     setWarnings(foundWarnings);
   }, [css]);
 
+  // Sync local state with prop value when it changes (e.g., when API data loads)
+  useEffect(() => {
+    setCSS(value || '');
+  }, [value]);
+
   const handleChange = (newValue) => {
     setCSS(newValue || '');
     // Only propagate sanitized CSS
