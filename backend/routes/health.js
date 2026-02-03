@@ -50,4 +50,46 @@ router.get('/detailed', async (req, res) => {
   });
 });
 
+/**
+ * GET /health/config
+ * Configuration validation endpoint
+ */
+router.get('/config', async (req, res) => {
+  const { config } = require('../config');
+
+  const checks = {
+    environment: {
+      supabase_url: !!config.supabase.url && config.supabase.url.startsWith('https://'),
+      supabase_keys: !!config.supabase.anonKey && !!config.supabase.serviceRoleKey,
+      frontend_url: !!config.frontendUrl,
+      node_env: !!config.nodeEnv,
+    },
+    services: {
+      database: 'unknown',
+    },
+  };
+
+  // Test database connection
+  try {
+    const { error } = await supabaseAdmin
+      .from('agencies')
+      .select('count')
+      .limit(1);
+    checks.services.database = !error;
+  } catch (e) {
+    checks.services.database = false;
+  }
+
+  const envOk = Object.values(checks.environment).every(v => v === true);
+  const servicesOk = Object.values(checks.services).every(v => v === true);
+  const allOk = envOk && servicesOk;
+
+  res.status(allOk ? 200 : 503).json({
+    status: allOk ? 'healthy' : 'unhealthy',
+    timestamp: new Date().toISOString(),
+    checks,
+    warnings: !envOk ? ['Some environment variables are missing or invalid'] : [],
+  });
+});
+
 module.exports = router;

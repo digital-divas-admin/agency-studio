@@ -3,6 +3,8 @@
  * Centralized API client for backend communication
  */
 
+import { cookieStorage } from './cookieStorage';
+
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 class ApiError extends Error {
@@ -15,15 +17,45 @@ class ApiError extends Error {
 }
 
 /**
+ * Get auth token from cookies (primary) with localStorage fallback
+ */
+function getAuthToken() {
+  // Primary: Read from cookies (where Supabase stores it)
+  const cookieToken = cookieStorage.getItem('supabase.auth.token');
+
+  if (cookieToken) {
+    try {
+      const parsed = JSON.parse(cookieToken);
+      return parsed?.access_token || null;
+    } catch (e) {
+      console.error('Failed to parse auth token from cookies:', e);
+      return null;
+    }
+  }
+
+  // Fallback: Check localStorage for backward compatibility
+  const localToken = localStorage.getItem('supabase.auth.token');
+  if (localToken) {
+    console.warn('Auth token found in localStorage (deprecated location)');
+    try {
+      const parsed = JSON.parse(localToken);
+      return parsed?.access_token || null;
+    } catch (e) {
+      console.error('Failed to parse token from localStorage:', e);
+      return null;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Make an authenticated API request
  */
 async function request(endpoint, options = {}) {
   const { headers = {}, ...rest } = options;
 
-  // Get auth token from localStorage
-  const token = localStorage.getItem('supabase.auth.token');
-  const parsedToken = token ? JSON.parse(token) : null;
-  const accessToken = parsedToken?.access_token;
+  const accessToken = getAuthToken();
 
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...rest,
@@ -40,11 +72,28 @@ async function request(endpoint, options = {}) {
   const data = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
-    throw new ApiError(
-      data?.error || data?.message || 'An error occurred',
-      response.status,
-      data
-    );
+    let errorMessage = data?.error || data?.message || 'An error occurred';
+
+    // Enhanced 401 errors
+    if (response.status === 401) {
+      if (!accessToken) {
+        errorMessage = 'Authentication required. Please log in again.';
+      } else {
+        errorMessage = 'Your session has expired. Please log in again.';
+      }
+    }
+
+    // Add config check hint in development
+    if ((response.status === 401 || response.status === 403) && import.meta.env.DEV) {
+      console.error('Auth error - check configuration:', {
+        hasToken: !!accessToken,
+        apiBaseUrl: API_BASE,
+        endpoint,
+        status: response.status,
+      });
+    }
+
+    throw new ApiError(errorMessage, response.status, data);
   }
 
   return data;
@@ -125,9 +174,7 @@ export const api = {
   deleteModel: (id) =>
     request(`/api/models/${id}`, { method: 'DELETE' }),
   uploadModelAvatar: async (formData) => {
-    const token = localStorage.getItem('supabase.auth.token');
-    const parsedToken = token ? JSON.parse(token) : null;
-    const accessToken = parsedToken?.access_token;
+    const accessToken = getAuthToken();
 
     const response = await fetch(`${API_BASE}/api/models/upload-avatar`, {
       method: 'POST',
