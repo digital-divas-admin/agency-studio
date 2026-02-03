@@ -4,6 +4,7 @@
  */
 
 import { Sidebar } from './Sidebar';
+import { clsx } from 'clsx';
 
 export function Layout({ children }) {
   return (
@@ -36,12 +37,19 @@ export function PageHeader({ title, description, actions }) {
 
 /**
  * Card Component
- * Container for content sections
+ * Container for content sections with multiple variant options
  */
-export function Card({ children, className, ...props }) {
+const CARD_VARIANTS = {
+  default: 'bg-surface/80 backdrop-blur-sm border border-border/40 shadow-lg shadow-black/10',
+  elevated: 'bg-surface-elevated/90 backdrop-blur-sm border border-border/30 shadow-xl shadow-black/20',
+  interactive: 'bg-surface/80 backdrop-blur-sm border border-border/40 shadow-lg shadow-black/10 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-glow/30 cursor-pointer',
+  glass: 'bg-surface/40 backdrop-blur-md border border-white/5 shadow-lg',
+};
+
+export function Card({ children, className, variant = 'default', ...props }) {
   return (
     <div
-      className={`bg-surface rounded-xl border border-border p-6 ${className || ''}`}
+      className={clsx('rounded-xl p-6', CARD_VARIANTS[variant], className)}
       {...props}
     >
       {children}

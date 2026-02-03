@@ -70,21 +70,21 @@ function ModelCard({ model, onSelect, onSelectOnly }) {
   const hasReviews = model.pending_reviews > 0;
 
   return (
-    <div className="w-full max-w-[240px] h-[220px] card-premium p-4 group flex flex-col">
+    <div className="w-full max-w-[260px] h-auto card-premium p-5 group flex flex-col gap-4">
       {/* Clickable card body — selects model and navigates to generate */}
       <div
         onClick={() => onSelect(model)}
-        className="cursor-pointer flex flex-col flex-1"
+        className="cursor-pointer flex flex-col gap-4"
       >
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3">
           {model.avatar_url ? (
             <img
               src={model.avatar_url}
               alt={model.name}
-              className="h-14 w-14 rounded-full object-cover border-2 border-border group-hover:border-primary/50 transition-colors"
+              className="h-14 w-14 rounded-full object-cover border-2 border-border group-hover:border-primary/50 transition-all duration-200 ring-2 ring-transparent group-hover:ring-primary/30 group-hover:ring-offset-2 group-hover:ring-offset-background"
             />
           ) : (
-            <div className="h-14 w-14 rounded-full bg-purple-500/20 flex items-center justify-center border-2 border-border group-hover:border-primary/50 transition-colors">
+            <div className="h-14 w-14 rounded-full bg-purple-500/20 flex items-center justify-center border-2 border-border group-hover:border-primary/50 transition-all duration-200 ring-2 ring-transparent group-hover:ring-primary/30 group-hover:ring-offset-2 group-hover:ring-offset-background">
               <User className="h-7 w-7 text-purple-400" />
             </div>
           )}
@@ -102,7 +102,7 @@ function ModelCard({ model, onSelect, onSelectOnly }) {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted h-[40px] content-start">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-text-muted">
           <span className="flex items-center gap-1.5">
             <Image className="h-3.5 w-3.5" />
             {model.gallery_count} images
@@ -121,16 +121,16 @@ function ModelCard({ model, onSelect, onSelectOnly }) {
       </div>
 
       {/* Action buttons — separate from the card click target */}
-      <div className="flex flex-col gap-1.5 mt-4">
+      <div className="flex flex-col gap-1.5">
         <Link
           to="/generate/image"
           onClick={() => onSelectOnly(model)}
         >
-          <button className="w-full py-2 px-3 bg-gradient-primary text-white text-sm font-semibold rounded-lg hover:shadow-glow-lg hover:scale-105 active:scale-95 transition-all">
+          <button className="w-full py-2 px-3 bg-gradient-primary text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-glow-lg hover:scale-105 active:scale-95 transition-all">
             Generate
           </button>
         </Link>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
           <Link
             to="/workflows"
             onClick={() => onSelectOnly(model)}
@@ -161,7 +161,7 @@ function AlertBanners({ pendingReviews, recentFailures, navigate }) {
   return (
     <div className="space-y-2 mb-6">
       {pendingReviews.length > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg shadow-[0_0_20px_rgba(234,179,8,0.2)] animate-slide-up">
+        <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 backdrop-blur-sm border border-yellow-500/20 rounded-lg shadow-lg shadow-yellow-500/10 animate-slide-up">
           <Eye className="h-4 w-4 text-yellow-400 flex-shrink-0" />
           <div className="flex-1 text-sm">
             <span className="font-medium text-yellow-400">{pendingReviews.length} workflow{pendingReviews.length !== 1 ? 's' : ''} waiting for review</span>
@@ -180,7 +180,7 @@ function AlertBanners({ pendingReviews, recentFailures, navigate }) {
       )}
 
       {recentFailures.length > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg shadow-[0_0_20px_rgba(239,68,68,0.2)] animate-slide-up" style={{ animationDelay: '0.1s' }}>
+        <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-red-500/10 to-red-500/5 backdrop-blur-sm border border-red-500/20 rounded-lg shadow-lg shadow-red-500/10 animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <AlertTriangle className="h-4 w-4 text-red-400 flex-shrink-0" />
           <div className="flex-1 text-sm">
             <span className="font-medium text-red-400">{recentFailures.length} failed run{recentFailures.length !== 1 ? 's' : ''} today</span>

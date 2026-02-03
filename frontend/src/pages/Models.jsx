@@ -315,7 +315,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
       <div
         className="bg-surface rounded-xl border border-border w-full max-w-4xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
@@ -371,7 +371,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                   onChange={(e) => updateFormData('name', e.target.value)}
                   placeholder="e.g. Sophia"
                   required
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                 />
               </div>
 
@@ -382,7 +382,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                   onChange={(e) => updateFormData('bio', e.target.value)}
                   rows={4}
                   placeholder="Public bio about this model..."
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm resize-none transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                 />
               </div>
 
@@ -392,7 +392,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                   type="date"
                   value={formData.joined_date}
                   onChange={(e) => updateFormData('joined_date', e.target.value)}
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                 />
               </div>
 
@@ -403,7 +403,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                   onChange={(e) => updateFormData('notes', e.target.value)}
                   rows={3}
                   placeholder="Private notes for agency use only..."
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm resize-none transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                 />
               </div>
 
@@ -421,7 +421,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                     value={formData.lora_config.path}
                     onChange={(e) => updateNestedField('lora_config', 'path', e.target.value)}
                     placeholder="e.g. sophia-v2.safetensors"
-                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                   />
                 </div>
 
@@ -433,7 +433,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                       value={formData.lora_config.triggerWord}
                       onChange={(e) => updateNestedField('lora_config', 'triggerWord', e.target.value)}
                       placeholder="e.g. sks_sophia"
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                     />
                   </div>
                   <div>
@@ -445,7 +445,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                       step="0.05"
                       value={formData.lora_config.weight}
                       onChange={(e) => updateNestedField('lora_config', 'weight', parseFloat(e.target.value))}
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                     />
                   </div>
                 </div>
@@ -463,7 +463,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                   value={formData.email}
                   onChange={(e) => updateFormData('email', e.target.value)}
                   placeholder="model@example.com"
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                 />
               </div>
 
@@ -474,7 +474,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                   value={formData.phone}
                   onChange={(e) => updateFormData('phone', e.target.value)}
                   placeholder="+1 (555) 555-5555"
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                 />
               </div>
 
@@ -489,7 +489,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                       value={formData.onlyfans_handle}
                       onChange={(e) => updateFormData('onlyfans_handle', e.target.value)}
                       placeholder="@username"
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                     />
                   </div>
 
@@ -500,7 +500,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                       value={formData.social_media.instagram}
                       onChange={(e) => updateNestedField('social_media', 'instagram', e.target.value)}
                       placeholder="@username"
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                     />
                   </div>
 
@@ -511,7 +511,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                       value={formData.social_media.twitter}
                       onChange={(e) => updateNestedField('social_media', 'twitter', e.target.value)}
                       placeholder="@username"
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                     />
                   </div>
 
@@ -522,7 +522,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                       value={formData.social_media.tiktok}
                       onChange={(e) => updateNestedField('social_media', 'tiktok', e.target.value)}
                       placeholder="@username"
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                     />
                   </div>
 
@@ -533,7 +533,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                       value={formData.social_media.youtube}
                       onChange={(e) => updateNestedField('social_media', 'youtube', e.target.value)}
                       placeholder="@channelname"
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                     />
                   </div>
 
@@ -544,7 +544,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                       value={formData.social_media.snapchat}
                       onChange={(e) => updateNestedField('social_media', 'snapchat', e.target.value)}
                       placeholder="username"
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                     />
                   </div>
                 </div>
@@ -562,7 +562,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                   value={formData.contract_split}
                   onChange={(e) => updateFormData('contract_split', e.target.value)}
                   placeholder="e.g., 70/30, 60/40"
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                 />
                 <p className="text-xs text-text-muted mt-1">Agency / Model split</p>
               </div>
@@ -574,7 +574,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                   onChange={(e) => updateFormData('contract_notes', e.target.value)}
                   rows={6}
                   placeholder="Contract details, terms, special arrangements..."
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm resize-none transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                 />
                 <p className="text-xs text-text-muted mt-1">This is private and never visible to regular users</p>
               </div>
@@ -611,7 +611,7 @@ function ModelFormModal({ model, onClose, onSaved }) {
                   onChange={(e) => updateNestedField('content_preferences', 'special_notes', e.target.value)}
                   rows={4}
                   placeholder="Any special preferences, requirements, or notes about content creation..."
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-border/50 bg-surface/50 px-3 py-2 text-text text-sm resize-none transition-all duration-200 hover:border-border hover:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:bg-surface-elevated placeholder:text-text-muted/60"
                 />
               </div>
             </div>

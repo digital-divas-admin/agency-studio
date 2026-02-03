@@ -51,10 +51,10 @@ function NavItem({ to, icon: Icon, label }) {
       to={to}
       className={({ isActive }) =>
         clsx(
-          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ease-out',
           isActive
-            ? 'bg-primary text-white'
-            : 'text-text-muted hover:text-text hover:bg-surface-elevated'
+            ? 'bg-gradient-to-r from-primary to-primary-light text-white shadow-glow/50'
+            : 'text-text-muted hover:text-text hover:bg-surface-elevated hover:translate-x-0.5'
         )
       }
     >
