@@ -89,6 +89,30 @@ export function AgencyProvider({ children }) {
         favicon.href = branding.favicon_url;
       }
     }
+
+    // Apply full color palette if configured (Enterprise tier)
+    if (branding.color_palette && typeof branding.color_palette === 'object') {
+      Object.entries(branding.color_palette).forEach(([key, value]) => {
+        if (value) {
+          root.style.setProperty(`--color-${key}`, value);
+        }
+      });
+    }
+
+    // Inject custom CSS if configured (Enterprise tier)
+    if (branding.custom_css) {
+      // Remove existing custom CSS if any
+      const existingStyle = document.getElementById('agency-custom-css');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+
+      // Create and inject new custom CSS
+      const styleElement = document.createElement('style');
+      styleElement.id = 'agency-custom-css';
+      styleElement.textContent = branding.custom_css;
+      document.head.appendChild(styleElement);
+    }
   }, [branding]);
 
   const refreshAgency = async () => {
