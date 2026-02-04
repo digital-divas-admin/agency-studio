@@ -70,38 +70,46 @@ function ModelCard({ model, onSelect, onSelectOnly }) {
   const hasReviews = model.pending_reviews > 0;
 
   return (
-    <div className="w-full max-w-[260px] h-auto card-premium p-5 group flex flex-col gap-4">
-      {/* Clickable card body — selects model and navigates to generate */}
+    <div className="w-full max-w-[260px] card-premium overflow-hidden group flex flex-col">
+      {/* Large Square Image - clickable */}
       <div
+        className="relative w-full aspect-square bg-surface-elevated cursor-pointer overflow-hidden"
         onClick={() => onSelect(model)}
-        className="cursor-pointer flex flex-col gap-4"
       >
-        <div className="flex items-center gap-3">
-          {model.avatar_url ? (
-            <img
-              src={model.avatar_url}
-              alt={model.name}
-              className="h-14 w-14 rounded-full object-cover border-2 border-border group-hover:border-primary/50 transition-all duration-200 ring-2 ring-transparent group-hover:ring-primary/30 group-hover:ring-offset-2 group-hover:ring-offset-background"
-            />
-          ) : (
-            <div className="h-14 w-14 rounded-full bg-purple-500/20 flex items-center justify-center border-2 border-border group-hover:border-primary/50 transition-all duration-200 ring-2 ring-transparent group-hover:ring-primary/30 group-hover:ring-offset-2 group-hover:ring-offset-background">
-              <User className="h-7 w-7 text-purple-400" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-text truncate">{model.name}</h3>
-            {model.onlyfans_handle && (
-              <p className="text-sm text-text-muted truncate">{model.onlyfans_handle}</p>
-            )}
+        {model.avatar_url ? (
+          <img
+            src={model.avatar_url}
+            alt={model.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+            <User className="h-16 w-16 text-purple-400 opacity-50" />
           </div>
-          {hasReviews && (
-            <span className="flex-shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-medium">
-              <Eye className="h-3.5 w-3.5" />
-              {model.pending_reviews}
-            </span>
+        )}
+
+        {/* Review Badge Overlay */}
+        {hasReviews && (
+          <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/90 text-white text-xs font-medium backdrop-blur-sm">
+            <Eye className="h-3.5 w-3.5" />
+            {model.pending_reviews}
+          </span>
+        )}
+      </div>
+
+      {/* Name and Info */}
+      <div className="p-4 flex flex-col gap-3">
+        <div
+          className="cursor-pointer"
+          onClick={() => onSelect(model)}
+        >
+          <h3 className="text-base font-semibold text-text truncate">{model.name}</h3>
+          {model.onlyfans_handle && (
+            <p className="text-sm text-text-muted truncate">{model.onlyfans_handle}</p>
           )}
         </div>
 
+        {/* Stats */}
         <div className="flex flex-wrap items-center gap-3 text-xs text-text-muted">
           <span className="flex items-center gap-1.5">
             <Image className="h-3.5 w-3.5" />
@@ -118,33 +126,33 @@ function ModelCard({ model, onSelect, onSelectOnly }) {
             </span>
           )}
         </div>
-      </div>
 
-      {/* Action buttons — separate from the card click target */}
-      <div className="flex flex-col gap-1.5">
-        <Link
-          to="/generate/image"
-          onClick={() => onSelectOnly(model)}
-        >
-          <button className="w-full py-2 px-3 bg-gradient-primary text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-glow-lg hover:scale-105 active:scale-95 transition-all">
-            Generate
-          </button>
-        </Link>
-        <div className="flex gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-1.5">
           <Link
-            to="/workflows"
+            to="/generate/image"
             onClick={() => onSelectOnly(model)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-surface text-text-muted rounded-lg text-xs font-medium hover:bg-surface-elevated hover:text-text transition-colors border border-border"
           >
-            <GitBranch className="h-3.5 w-3.5" /> Workflows
+            <button className="w-full py-2 px-3 bg-gradient-primary text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-glow-lg hover:scale-105 active:scale-95 transition-all">
+              Generate
+            </button>
           </Link>
-          <Link
-            to="/gallery"
-            onClick={() => onSelectOnly(model)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-surface text-text-muted rounded-lg text-xs font-medium hover:bg-surface-elevated hover:text-text transition-colors border border-border"
-          >
-            <Image className="h-3.5 w-3.5" /> Gallery
-          </Link>
+          <div className="flex gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+            <Link
+              to="/workflows"
+              onClick={() => onSelectOnly(model)}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-surface text-text-muted rounded-lg text-xs font-medium hover:bg-surface-elevated hover:text-text transition-colors border border-border"
+            >
+              <GitBranch className="h-3.5 w-3.5" /> Workflows
+            </Link>
+            <Link
+              to="/gallery"
+              onClick={() => onSelectOnly(model)}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-surface text-text-muted rounded-lg text-xs font-medium hover:bg-surface-elevated hover:text-text transition-colors border border-border"
+            >
+              <Image className="h-3.5 w-3.5" /> Gallery
+            </Link>
+          </div>
         </div>
       </div>
     </div>

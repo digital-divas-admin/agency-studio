@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Users,
   Plus,
@@ -23,6 +24,7 @@ import {
   Send,
   Copy,
   Check,
+  GitBranch,
 } from 'lucide-react';
 import { Layout, PageHeader, Card } from '../components/layout/Layout';
 import { Button } from '../components/common/Button';
@@ -709,13 +711,14 @@ function ModelFormModal({ model, onClose, onSaved }) {
 
 function ModelCard({ model, onEdit, onArchive, onRestore }) {
   const { user } = useAuth();
+  const { selectModel } = useModel();
   const isArchived = model.status === 'archived';
   const isAdmin = user?.role === 'admin' || user?.role === 'owner';
 
   return (
-    <div className="w-full max-w-[240px] card-premium overflow-hidden group flex flex-col">
-      {/* Large Square Image */}
-      <div className="relative w-full aspect-square bg-surface-elevated">
+    <div className="w-full max-w-[260px] card-premium overflow-hidden group flex flex-col">
+      {/* Profile Image */}
+      <div className="relative w-full aspect-square bg-surface-elevated overflow-hidden">
         {model.avatar_url ? (
           <img
             src={model.avatar_url}
@@ -742,7 +745,7 @@ function ModelCard({ model, onEdit, onArchive, onRestore }) {
       </div>
 
       {/* Name and Info */}
-      <div className="p-3 flex-1 flex flex-col">
+      <div className="p-3 pb-2 flex-1 flex flex-col">
         <h3 className="text-base font-semibold text-text mb-1">{model.name}</h3>
         {model.onlyfans_handle && (
           <p className="text-xs text-text-muted mb-2 truncate">{model.onlyfans_handle}</p>
@@ -763,11 +766,36 @@ function ModelCard({ model, onEdit, onArchive, onRestore }) {
         )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-1.5 p-3 pt-0">
+      {/* Quick Action Buttons */}
+      <div className="flex flex-col gap-1.5 px-3">
+        <Link to="/generate/image" onClick={() => selectModel(model.id)} className="w-full">
+          <button className="w-full py-2 px-3 bg-gradient-primary text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-glow-lg hover:scale-105 active:scale-95 transition-all">
+            Generate
+          </button>
+        </Link>
+        <div className="flex gap-1.5">
+          <Link
+            to="/workflows"
+            onClick={() => selectModel(model.id)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-surface text-text-muted rounded-lg text-xs font-medium hover:bg-surface-elevated hover:text-text transition-colors border border-border"
+          >
+            <GitBranch className="h-3.5 w-3.5" /> Workflows
+          </Link>
+          <Link
+            to="/gallery"
+            onClick={() => selectModel(model.id)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-surface text-text-muted rounded-lg text-xs font-medium hover:bg-surface-elevated hover:text-text transition-colors border border-border"
+          >
+            <ImageIcon className="h-3.5 w-3.5" /> Gallery
+          </Link>
+        </div>
+      </div>
+
+      {/* Management Buttons */}
+      <div className="flex gap-1.5 p-3">
         <button
           onClick={() => onEdit(model)}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-primary text-white rounded-lg text-xs font-medium hover:shadow-glow-lg hover:scale-105 active:scale-95 transition-all"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-surface text-text-muted rounded-lg text-xs font-medium hover:bg-surface-elevated hover:text-text transition-colors border border-border"
         >
           <Pencil className="h-3.5 w-3.5" /> Edit
         </button>
