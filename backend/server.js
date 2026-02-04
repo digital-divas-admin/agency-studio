@@ -33,7 +33,9 @@ const portalRoutes = require('./routes/portal');
 const modelInvitationsRoutes = require('./routes/modelInvitations');
 const brandingRoutes = require('./routes/admin/branding');
 const assetsRoutes = require('./routes/admin/assets');
+const trendsRoutes = require('./routes/trends');
 const workflowScheduler = require('./services/workflowScheduler');
+const trendsScheduler = require('./services/trendsScheduler');
 
 // Validate environment on startup
 try {
@@ -66,7 +68,7 @@ app.use(helmet({
       fontSrc: ["'self'", "data:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'", "https:", "blob:"],
-      frameSrc: ["'none'"],
+      frameSrc: ["'self'", "https://www.instagram.com"],
       upgradeInsecureRequests: config.isDev ? null : [],
     },
   },
@@ -195,6 +197,9 @@ app.use('/api/portal', portalRoutes);
 // Model invitation routes (public validation/acceptance, admin-only creation)
 app.use('/api/model-invitations', modelInvitationsRoutes);
 
+// Trends routes (Instagram trends discovery)
+app.use('/api/trends', trendsRoutes);
+
 // Generation routes (stricter rate limit for POST, general for GET/polling)
 app.use('/api/generate', generationLimiter, generationRoutes);
 
@@ -266,12 +271,16 @@ const server = app.listen(config.port, () => {
 
   // Start workflow scheduler (polls for due scheduled triggers)
   workflowScheduler.start();
+
+  // Start trends scheduler (scrapes Instagram Reels every 12 hours)
+  trendsScheduler.start();
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
   workflowScheduler.stop();
+  trendsScheduler.stop();
   server.close(() => {
     logger.info('Server closed');
     process.exit(0);
@@ -281,6 +290,7 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
   workflowScheduler.stop();
+  trendsScheduler.stop();
   server.close(() => {
     logger.info('Server closed');
     process.exit(0);

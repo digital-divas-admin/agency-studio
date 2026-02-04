@@ -110,7 +110,7 @@ async function resolveAgency(req, res, next) {
         let agency = getCachedAgency(cacheKey);
 
         if (!agency) {
-          // Lookup by custom domain
+          // Lookup by custom domain (accept both active and trial statuses)
           const { data, error } = await supabaseAdmin
             .from('agencies')
             .select('*')
@@ -137,7 +137,7 @@ async function resolveAgency(req, res, next) {
     let agency = getCachedAgency(cacheKey);
 
     if (!agency) {
-      // Lookup by slug from database
+      // Lookup by slug from database (accept both active and trial statuses)
       const { data, error } = await supabaseAdmin
         .from('agencies')
         .select('*')
@@ -178,7 +178,7 @@ async function resolveAgencyOptional(req, res, next) {
         .from('agencies')
         .select('*')
         .eq('slug', agencySlug)
-        .eq('status', 'active')
+        .in('status', ['active', 'trial'])
         .single();
 
       req.agency = agency || null;

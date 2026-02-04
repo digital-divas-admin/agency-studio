@@ -14,6 +14,7 @@ import {
   FolderOpen,
   GitBranch,
   Send,
+  TrendingUp,
   Users,
   BarChart3,
   Palette,
@@ -36,6 +37,7 @@ const mainNavItems = [
   { to: '/gallery', icon: FolderOpen, label: 'Gallery' },
   { to: '/workflows', icon: GitBranch, label: 'Workflows' },
   { to: '/content-requests', icon: Send, label: 'Content Requests' },
+  { to: '/trends', icon: TrendingUp, label: 'Trends' },
 ];
 
 const adminNavItems = [

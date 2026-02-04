@@ -316,6 +316,41 @@ export const api = {
   // Health
   healthCheck: () => request('/health'),
 
+  // Trends
+  getTrends: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/api/trends${query ? `?${query}` : ''}`);
+  },
+  getTrend: (id) => request(`/api/trends/${id}`),
+  saveTrend: (id, notes) =>
+    request(`/api/trends/${id}/save`, {
+      method: 'POST',
+      body: JSON.stringify({ notes }),
+    }),
+  unsaveTrend: (id) =>
+    request(`/api/trends/${id}/save`, { method: 'DELETE' }),
+  getSavedTrends: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/api/trends/saved${query ? `?${query}` : ''}`);
+  },
+  updateSavedTrendNotes: (savedId, notes) =>
+    request(`/api/trends/saved/${savedId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ notes }),
+    }),
+  removeSavedTrend: (savedId) =>
+    request(`/api/trends/saved/${savedId}`, { method: 'DELETE' }),
+
+  // Trends - Tracked Accounts
+  getTrendAccounts: () => request('/api/trends/accounts'),
+  addTrendAccount: (data) =>
+    request('/api/trends/accounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  removeTrendAccount: (id) =>
+    request(`/api/trends/accounts/${id}`, { method: 'DELETE' }),
+
   // Branding & White-Label
   getBranding: () => request('/api/admin/branding'),
   updateBranding: (data) =>

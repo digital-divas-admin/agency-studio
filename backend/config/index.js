@@ -98,6 +98,16 @@ const config = {
     // Chat
     chat: 2,
   },
+
+  // Apify (for Instagram trends scraping)
+  apify: {
+    apiKey: process.env.APIFY_API_KEY,
+  },
+
+  // Trends scheduler
+  trends: {
+    scrapeIntervalMs: parseInt(process.env.TRENDS_SCRAPE_INTERVAL_MS || '43200000', 10), // 12 hours
+  },
 };
 
 module.exports = { config, validateEnv };

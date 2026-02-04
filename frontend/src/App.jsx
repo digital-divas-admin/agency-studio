@@ -27,6 +27,8 @@ import { WorkflowRunPage } from './pages/WorkflowRun';
 import { ContentRequestsPage } from './pages/ContentRequests';
 import { ModelPortalPage } from './pages/ModelPortal';
 import ModelInvitePage from './pages/ModelInvite';
+import { TrendsPage } from './pages/Trends';
+import { SavedTrendsPage } from './pages/SavedTrends';
 
 function App() {
   return (
@@ -154,6 +156,24 @@ function App() {
         element={
           <ProtectedRoute>
             <ContentRequestsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Trends Routes */}
+      <Route
+        path="/trends"
+        element={
+          <ProtectedRoute>
+            <TrendsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trends/saved"
+        element={
+          <ProtectedRoute>
+            <SavedTrendsPage />
           </ProtectedRoute>
         }
       />

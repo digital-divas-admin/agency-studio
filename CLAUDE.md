@@ -59,6 +59,53 @@ The `getAuthToken()` function now:
 
 ---
 
+### Issue 4: Agency Status - 404 "Agency not found"
+
+**Symptom**: Backend logs show `Agency not found for slug: fresh-test` even though the agency exists in the database.
+
+**Root Cause**: The agency middleware (`backend/middleware/agency.js`) filters by status. It accepts:
+- ✅ `status = 'active'`
+- ✅ `status = 'trial'`
+- ❌ `status = 'suspended'` or `'cancelled'` (rejected)
+
+**How to Check**:
+```sql
+SELECT slug, status FROM agencies WHERE slug = 'fresh-test';
+```
+
+**Fix**: If the agency has an unexpected status, update it:
+```sql
+UPDATE agencies SET status = 'active' WHERE slug = 'fresh-test';
+```
+
+**File**: `backend/middleware/agency.js` - lines 82-87
+
+---
+
+### Issue 5: Service Role Key vs Anon Key - CRITICAL!
+
+**Symptom**: Backend can't query the database, gets empty results or RLS errors even with correct SQL.
+
+**Root Cause**: The backend needs the **service_role** key (bypasses RLS), NOT the **anon** key.
+
+**How to Verify**: Decode the JWT at https://jwt.io or check the payload:
+- ✅ Service Role: `"role": "service_role"`
+- ❌ Anon Key: `"role": "anon"`
+
+**Where to Find**: Supabase Dashboard → Settings → API → Project API keys
+- `anon` key = public, subject to RLS
+- `service_role` key = admin, bypasses RLS (keep secret!)
+
+**Backend .env**:
+```env
+SUPABASE_ANON_KEY=eyJ...        # Has "role":"anon" in payload
+SUPABASE_SERVICE_ROLE_KEY=eyJ... # Has "role":"service_role" in payload
+```
+
+**⚠️ These are DIFFERENT keys!** Don't use the same key for both.
+
+---
+
 ## Quick SQL Reference
 
 ### Add User to Agency (CORRECT!)
@@ -128,6 +175,12 @@ WHERE u.email = 'user@example.com';
    - User not in agency_users table
    - Run SQL to add user (use `auth_user_id`!)
    - Must include `email` field
+
+   **If 404 with "Agency not found"** → Agency resolution problem:
+   - Check agency exists: `SELECT slug, status FROM agencies;`
+   - Verify status is `active` or `trial` (not suspended/cancelled)
+   - Check `DEFAULT_AGENCY_SLUG` in backend `.env` matches actual slug
+   - Verify service role key is correct (not anon key!)
 
 3. **Check health endpoint:**
    ```bash
@@ -339,6 +392,8 @@ curl http://localhost:3001/health/config
 🔑 **Always include `email` when inserting into agency_users**
 🔑 **Check backend logs first to identify the real issue**
 🔑 **Use `/health/config` to verify environment setup**
+🔑 **Agency status must be `active` or `trial`** (not suspended/cancelled)
+🔑 **Service role key ≠ anon key** (check JWT payload for `"role":"service_role"`)
 
 ---
 
