@@ -283,8 +283,11 @@ async function provisionAgency({ agencyName, ownerName, email, password, planId,
         }
         if (createdAgency) {
             console.error('Rolling back: Deleting agency', createdAgency.id);
-            await supabaseAdmin.from('agencies').delete().eq('id', createdAgency.id)
-                .catch(err => console.error('Failed to delete agency during rollback:', err));
+            try {
+                await supabaseAdmin.from('agencies').delete().eq('id', createdAgency.id);
+            } catch (err) {
+                console.error('Failed to delete agency during rollback:', err);
+            }
         }
 
         throw error;

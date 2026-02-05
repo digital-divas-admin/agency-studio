@@ -33,11 +33,7 @@ async function requireAuth(req, res, next) {
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !user) {
-      logger.warn('Invalid token:', authError?.message || 'No user found', {
-        hasError: !!authError,
-        hasUser: !!user,
-        tokenLength: token?.length
-      });
+      logger.warn('Invalid token:', authError?.message || 'No user found');
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
 

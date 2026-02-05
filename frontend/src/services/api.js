@@ -7,6 +7,23 @@ import { cookieStorage } from './cookieStorage';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+// Agency slug storage for dev mode
+const AGENCY_SLUG_KEY = 'agency_slug';
+
+export function setAgencySlug(slug) {
+  if (slug) {
+    localStorage.setItem(AGENCY_SLUG_KEY, slug);
+  }
+}
+
+export function getAgencySlug() {
+  return localStorage.getItem(AGENCY_SLUG_KEY);
+}
+
+export function clearAgencySlug() {
+  localStorage.removeItem(AGENCY_SLUG_KEY);
+}
+
 class ApiError extends Error {
   constructor(message, status, data) {
     super(message);
@@ -57,11 +74,15 @@ async function request(endpoint, options = {}) {
 
   const accessToken = getAuthToken();
 
+  // Get agency slug for dev mode (in production, subdomain determines agency)
+  const agencySlug = import.meta.env.DEV ? getAgencySlug() : null;
+
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...rest,
     headers: {
       'Content-Type': 'application/json',
       ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      ...(agencySlug && { 'X-Agency-Slug': agencySlug }),
       ...headers,
     },
   });
@@ -113,6 +134,8 @@ export const api = {
     }),
   getUsage: () => request('/api/agency/usage'),
   getDashboard: () => request('/api/agency/dashboard'),
+  completeOnboarding: () =>
+    request('/api/agency/onboarding/complete', { method: 'PUT' }),
 
   // Team
   getTeam: () => request('/api/team'),
@@ -201,11 +224,13 @@ export const api = {
     request(`/api/models/${id}`, { method: 'DELETE' }),
   uploadModelAvatar: async (formData) => {
     const accessToken = getAuthToken();
+    const agencySlug = import.meta.env.DEV ? getAgencySlug() : null;
 
     const response = await fetch(`${API_BASE}/api/models/upload-avatar`, {
       method: 'POST',
       headers: {
         ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        ...(agencySlug && { 'X-Agency-Slug': agencySlug }),
       },
       body: formData, // Don't set Content-Type - browser will set it with boundary
     });
@@ -316,6 +341,43 @@ export const api = {
   // Health
   healthCheck: () => request('/health'),
 
+  // Auth - Agency auto-detection (no agency context required)
+  // Optional accessToken param to avoid cookie timing issues during auth state changes
+  getMyAgencies: async (accessToken = null) => {
+    const token = accessToken || getAuthToken();
+    if (!token) {
+      throw new ApiError('No auth token available', 401);
+    }
+    const response = await fetch(`${API_BASE}/api/auth/my-agencies`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new ApiError(data?.error || 'Failed to get agencies', response.status, data);
+    }
+    return response.json();
+  },
+
+  // getMe with explicit token (for use during auth state changes)
+  getMeWithToken: async (accessToken, agencySlugOverride = null) => {
+    const agencySlug = agencySlugOverride || (import.meta.env.DEV ? getAgencySlug() : null);
+    const response = await fetch(`${API_BASE}/api/agency/me`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        ...(agencySlug && { 'X-Agency-Slug': agencySlug }),
+      },
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new ApiError(data?.error || 'Failed to load profile', response.status, data);
+    }
+    return response.json();
+  },
+
   // Trends
   getTrends: (params = {}) => {
     const query = new URLSearchParams(params).toString();
@@ -361,10 +423,12 @@ export const api = {
   // Asset Management
   uploadAsset: async (formData) => {
     const token = getAuthToken();
+    const agencySlug = import.meta.env.DEV ? getAgencySlug() : null;
     const response = await fetch(`${API_BASE}/api/admin/assets/upload`, {
       method: 'POST',
       headers: {
-        ...(token && { Authorization: `Bearer ${token}` })
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...(agencySlug && { 'X-Agency-Slug': agencySlug })
       },
       body: formData // Don't set Content-Type, browser will set it with boundary
     });

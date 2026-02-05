@@ -3,7 +3,7 @@
  * Multi-step wizard for new agency setup
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAgency } from '../context/AgencyContext';
 import { Button } from '../components/common/Button';
@@ -30,11 +30,11 @@ export function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const { agency, updateAgency, branding } = useAgency();
+  const { agency, refreshAgency, branding, loading: agencyLoading } = useAgency();
   const navigate = useNavigate();
 
-  // Initialize form with current agency data
-  useState(() => {
+  // Initialize form with current agency data (must be before any early returns)
+  useEffect(() => {
     if (agency && branding) {
       setFormData(prev => ({
         ...prev,
@@ -44,6 +44,18 @@ export function OnboardingPage() {
       }));
     }
   }, [agency, branding]);
+
+  // Show loading while agency config loads
+  if (agencyLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-text-muted">Loading your agency...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
@@ -130,7 +142,7 @@ export function OnboardingPage() {
         }
       });
 
-      await updateAgency();
+      await refreshAgency();
       handleNext();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to save branding');
@@ -169,11 +181,11 @@ export function OnboardingPage() {
     setSubmitting(true);
 
     try {
-      await api.put('/agency/onboarding/complete');
-      await updateAgency();
+      await api.completeOnboarding();
+      await refreshAgency();
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to complete onboarding');
+      setError(err.message || 'Failed to complete onboarding');
     } finally {
       setSubmitting(false);
     }

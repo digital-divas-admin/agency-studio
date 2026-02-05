@@ -8,6 +8,9 @@ import { AgencyProvider } from './context/AgencyContext';
 import { ModelProvider } from './context/ModelContext';
 import './styles/index.css';
 
+// Note: Agency slug is now managed by AuthContext via /my-agencies endpoint
+// No URL-based extraction needed - the backend tells us which agency the user belongs to
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -21,13 +24,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AgencyProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <AgencyProvider>
             <ModelProvider>
               <App />
             </ModelProvider>
-          </AuthProvider>
-        </AgencyProvider>
+          </AgencyProvider>
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>

@@ -83,15 +83,23 @@ router.post('/signup-agency', async (req, res) => {
             slug
         });
 
-        // Create session for the new user
-        const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'magiclink',
-            email: email,
-        });
+        // Sign in the user server-side and return session tokens
+        // This allows the frontend to set the session directly without a separate sign-in call
+        let session = null;
+        try {
+            const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+                email,
+                password
+            });
 
-        if (sessionError) {
-            console.error('Error generating session:', sessionError);
-            // Don't fail the signup, just log the error
+            if (signInError) {
+                console.error('Error signing in after signup:', signInError);
+                // Don't fail the signup, just log the error - frontend can sign in manually
+            } else {
+                session = signInData?.session;
+            }
+        } catch (signInErr) {
+            console.error('Exception during post-signup sign-in:', signInErr);
         }
 
         res.status(201).json({
@@ -109,10 +117,8 @@ router.post('/signup-agency', async (req, res) => {
                 email: result.authUser.email,
                 name: ownerName
             },
-            // Return session link if available
-            ...(sessionData?.properties?.action_link && {
-                sessionLink: sessionData.properties.action_link
-            })
+            // Return session tokens if sign-in succeeded
+            ...(session && { session })
         });
     } catch (error) {
         console.error('Signup error:', error);
@@ -268,6 +274,66 @@ router.get('/validate-invite/:token', async (req, res) => {
     } catch (error) {
         console.error('Validate invitation error:', error);
         res.status(500).json({ error: 'Failed to validate invitation' });
+    }
+});
+
+/**
+ * GET /api/auth/my-agencies
+ * Get agencies the authenticated user belongs to
+ * This endpoint doesn't require agency context - used for auto-detection
+ */
+router.get('/my-agencies', async (req, res) => {
+    try {
+        // Get token from Authorization header
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Authorization token required' });
+        }
+
+        const token = authHeader.split(' ')[1];
+
+        // Verify token and get user
+        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+        if (authError || !user) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+
+        // Find user's agencies
+        const { data: memberships, error: queryError } = await supabaseAdmin
+            .from('agency_users')
+            .select(`
+                role,
+                status,
+                agencies (
+                    id,
+                    name,
+                    slug,
+                    status
+                )
+            `)
+            .eq('auth_user_id', user.id)
+            .eq('status', 'active');
+
+        if (queryError) {
+            console.error('Error fetching user agencies:', queryError);
+            return res.status(500).json({ error: 'Failed to fetch agencies' });
+        }
+
+        // Filter to only active/trial agencies and format response
+        const agencies = (memberships || [])
+            .filter(m => m.agencies && (m.agencies.status === 'active' || m.agencies.status === 'trial'))
+            .map(m => ({
+                id: m.agencies.id,
+                name: m.agencies.name,
+                slug: m.agencies.slug,
+                role: m.role
+            }));
+
+        res.json({ agencies });
+    } catch (error) {
+        console.error('Get my agencies error:', error);
+        res.status(500).json({ error: 'Failed to get agencies' });
     }
 });
 

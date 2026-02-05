@@ -4,13 +4,14 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
-import { api } from '../services/api';
+import { setAgencySlug } from '../services/api';
 import { supabase } from '../services/supabase';
 
 export function SignupPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     agencyName: '',
     ownerName: '',
@@ -25,8 +26,6 @@ export function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-
-  const navigate = useNavigate();
 
   // Fetch available plans on mount
   useEffect(() => {
@@ -113,7 +112,7 @@ export function SignupPage() {
     setLoading(true);
 
     try {
-      // Create agency via API
+      // 1. Create agency via API (now returns session tokens)
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/signup-agency`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -133,18 +132,27 @@ export function SignupPage() {
         throw new Error(data.error || 'Failed to create agency');
       }
 
-      // Sign in with the created account
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password
-      });
+      // 2. Store agency slug for AuthContext to use
+      localStorage.removeItem('agency_slug');
+      setAgencySlug(data.agency.slug);
 
-      if (signInError) {
-        throw signInError;
+      // 3. Set session directly if returned, otherwise sign in manually
+      if (data.session) {
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        });
+      } else {
+        // Fallback: sign in manually if session wasn't returned
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        });
+        if (signInError) throw signInError;
       }
 
-      // Redirect to onboarding
-      navigate(`/${data.agency.slug}/onboarding`);
+      // 4. Navigate with React Router (no full page reload!)
+      navigate('/onboarding');
     } catch (err) {
       setError(err.message || 'Failed to create agency');
     } finally {

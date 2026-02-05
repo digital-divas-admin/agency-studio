@@ -54,7 +54,7 @@ function App() {
 
       {/* Onboarding (Protected) */}
       <Route
-        path="/:agencySlug/onboarding"
+        path="/onboarding"
         element={
           <ProtectedRoute>
             <OnboardingPage />
@@ -62,7 +62,7 @@ function App() {
         }
       />
       <Route
-        path="/onboarding"
+        path="/team-onboarding"
         element={
           <ProtectedRoute>
             <TeamMemberOnboardingPage />

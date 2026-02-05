@@ -4,6 +4,7 @@
  */
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
 import { api } from '../services/api';
 
 const AgencyContext = createContext(null);
@@ -26,15 +27,33 @@ const defaultFeatures = {
 };
 
 export function AgencyProvider({ children }) {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [agency, setAgency] = useState(null);
   const [branding, setBranding] = useState(defaultBranding);
   const [features, setFeatures] = useState(defaultFeatures);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load agency configuration on mount
+  // Load agency configuration when authenticated
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) {
+      return;
+    }
+
+    // If not authenticated, reset to defaults
+    if (!isAuthenticated) {
+      setAgency(null);
+      setBranding(defaultBranding);
+      setFeatures(defaultFeatures);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    // Load agency config when authenticated
     async function loadAgencyConfig() {
+      setLoading(true);
       try {
         const config = await api.getAgencyConfig();
         setAgency({
@@ -57,7 +76,7 @@ export function AgencyProvider({ children }) {
     }
 
     loadAgencyConfig();
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   // Apply branding to CSS variables
   useEffect(() => {
